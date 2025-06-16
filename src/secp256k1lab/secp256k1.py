@@ -192,6 +192,19 @@ class Scalar(APrimeFE):
     """TODO Docstring"""
     SIZE = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 
+    @classmethod
+    def from_int_nonzero_checked(cls, v):
+        """Convert an integer to a scalar (no zero or overflow allowed)."""
+        if not (0 < v < cls.SIZE):
+            raise ValueError
+        return cls(v)
+
+    @classmethod
+    def from_bytes_nonzero_checked(cls, b):
+        """Convert a 32-byte array to a scalar (BE byte order, no zero or overflow allowed)."""
+        v = int.from_bytes(b, 'big')
+        return cls.from_int_nonzero_checked(v)
+
 
 class GE:
     """Objects of this class represent secp256k1 group elements (curve points or infinity)
