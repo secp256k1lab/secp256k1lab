@@ -368,6 +368,14 @@ class GE:
         return r
 
     @staticmethod
+    def from_bytes_compressed_with_infinity(b):
+        """Convert a compressed to a group element, mapping zeros to infinity."""
+        if b == 33 * b"\x00":
+            return GE()
+        else:
+            return GE.from_bytes_compressed(b)
+
+    @staticmethod
     def from_bytes_uncompressed(b):
         """Convert an uncompressed to a group element."""
         assert len(b) == 65
