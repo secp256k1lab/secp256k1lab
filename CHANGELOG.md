@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    The already existing methods `Scalar.from_int_checked` and `Scalar.from_bytes_checked` error
    on overflow, but not on zero, i.e. they only ensure `0 <= s < N`.
 
+ - Added a new method `GE.from_bytes_compressed_with_infinity` to parse a compressed
+   public key (33 bytes) to a group element, where the all-zeros bytestring maps to the
+   point at infinity. This is the counterpart to the already existing serialization
+   method `GE.to_bytes_compressed_with_infinity`.
+
 ## [1.0.0] - 2025-03-31
 
 Initial release.
