@@ -90,6 +90,13 @@ class GeSerializationTests(unittest.TestCase):
         ]
         # generate a few random points, to likely cover both even/odd y polarity
         cls.group_elements_on_curve.extend([randint(1, Scalar.SIZE-1) * G for _ in range(8)])
+        # generate x coordinates that don't have a valid point on the curve
+        # (note that ~50% of all x coordinates are valid, so finding one needs two loop iterations on average)
+        cls.x_coords_not_on_curve = []
+        while len(cls.x_coords_not_on_curve) < 8:
+            x = randint(0, FE.SIZE-1)
+            if not GE.is_valid_x(x):
+                cls.x_coords_not_on_curve.append(x)
 
         cls.group_elements = [cls.point_at_infinity] + cls.group_elements_on_curve
 
@@ -101,7 +108,38 @@ class GeSerializationTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             _ = self.point_at_infinity.to_bytes_xonly()
 
-    # TODO: add tests for deserializing group elements that are not on the curve (should raise)
+    def test_not_on_curve_raises(self):
+        # for compressed and x-only GE deserialization, test with invalid x coordinate
+        for x in self.x_coords_not_on_curve:
+            x_bytes = x.to_bytes(32, 'big')
+            with self.assertRaises(ValueError):
+                _ = GE.from_bytes_compressed(b'\x02' + x_bytes)
+            with self.assertRaises(ValueError):
+                _ = GE.from_bytes_compressed(b'\x03' + x_bytes)
+            with self.assertRaises(ValueError):
+                _ = GE.from_bytes_compressed_with_infinity(b'\x02' + x_bytes)
+            with self.assertRaises(ValueError):
+                _ = GE.from_bytes_compressed_with_infinity(b'\x03' + x_bytes)
+            with self.assertRaises(ValueError):
+                _ = GE.from_bytes_xonly(x_bytes)
+
+        # for uncompressed GE serialization, test by invalidating either coordinate
+        for ge in self.group_elements_on_curve:
+            valid_x = ge.x
+            valid_y = ge.y
+            invalid_x = ge.x + 1
+            invalid_y = ge.y + 1
+
+            # valid cases (if point (x,y) is on the curve, then point(x,-y) is on the curve as well)
+            _ = GE.from_bytes_uncompressed(b'\x04' + valid_x.to_bytes() + valid_y.to_bytes())
+            _ = GE.from_bytes_uncompressed(b'\x04' + valid_x.to_bytes() + (-valid_y).to_bytes())
+            # invalid cases (curve equation y**2 = x**3 + 7 doesn't hold)
+            self.assertNotEqual(invalid_y**2, valid_x**3 + 7)
+            with self.assertRaises(ValueError):
+                _ = GE.from_bytes_uncompressed(b'\x04' + valid_x.to_bytes() + invalid_y.to_bytes())
+            self.assertNotEqual(valid_y**2, invalid_x**3 + 7)
+            with self.assertRaises(ValueError):
+                _ = GE.from_bytes_uncompressed(b'\x04' + invalid_x.to_bytes() + valid_y.to_bytes())
 
     def test_affine(self):
         # GE serialization and parsing round-trip (variants that only support serializing points on the curve)
