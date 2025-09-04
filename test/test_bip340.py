@@ -4,6 +4,7 @@ from random import randbytes
 import unittest
 
 from secp256k1lab.bip340 import pubkey_gen, schnorr_sign, schnorr_verify
+from secp256k1lab.bip340_batch_verify import schnorr_batch_verify
 
 
 class BIP340Tests(unittest.TestCase):
@@ -49,3 +50,22 @@ class BIP340Tests(unittest.TestCase):
             self.assertEqual(result, result_actual, f"BIP340 test vector ({comment}): verification failed unexpectedly")
         else:
             self.assertEqual(result, result_actual, f"BIP340 test vector ({comment}): verification succeeded unexpectedly")
+
+
+class BIP340BatchVerificationTests(unittest.TestCase):
+    """Test schnorr signature batch verification (BIP 340)."""
+
+    def test_correctness(self):
+        msgs, pubkeys, sigs = [], [], []
+        for i in range(10):
+            seckey = randbytes(32)
+            pubkey_xonly = pubkey_gen(seckey)
+            message = b'somemessage' + i.to_bytes(4, 'little')
+            signature = schnorr_sign(message, seckey, randbytes(32))
+            msgs.append(message)
+            pubkeys.append(pubkey_xonly)
+            sigs.append(signature)
+        success = schnorr_batch_verify(msgs, pubkeys, sigs)
+        self.assertTrue(success)
+
+    # TODO: add failure test cases
