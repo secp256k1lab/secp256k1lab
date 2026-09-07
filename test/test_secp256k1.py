@@ -78,6 +78,21 @@ class PrimeFieldTests(unittest.TestCase):
                 _ = Scalar.from_bytes_nonzero_checked(invalid_value.to_bytes(32, 'big'))
 
 
+    def test_from_bytes_rejects_wrong_length(self):
+        # The byte constructors document a 32-byte input. Any other length must
+        # be rejected rather than silently reinterpreted as a shorter or longer
+        # integer. Each input below encodes a small in-range value, so length is
+        # the only possible cause of rejection.
+        ctors = [FE.from_bytes_checked, FE.from_bytes_wrapping,
+                 Scalar.from_bytes_checked, Scalar.from_bytes_wrapping,
+                 Scalar.from_bytes_nonzero_checked]
+        for length in (0, 1, 31, 33, 64):
+            b = b'\x00' * (length - 1) + b'\x01' if length else b''
+            for ctor in ctors:
+                with self.assertRaises(ValueError):
+                    ctor(b)
+
+
 class GeSerializationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -179,6 +194,31 @@ class GeSerializationTests(unittest.TestCase):
                 self.assertEqual(ge_ser[0], 0x02 if ge_orig.has_even_y() else 0x03)
             ge_deser = GE.from_bytes_compressed_with_infinity(ge_ser)
             self.assertEqual(ge_deser, ge_orig)
+
+
+    def test_from_bytes_rejects_wrong_length(self):
+        # Parsing must reject a wrong-length encoding with an exception, and one
+        # that survives `python -O` (ValueError), not a bare assert.
+        ge = self.group_elements_on_curve[0]
+        comp = ge.to_bytes_compressed()      # 33 bytes
+        uncomp = ge.to_bytes_uncompressed()  # 65 bytes
+        xonly = ge.to_bytes_xonly()          # 32 bytes
+        for good, parse in ((comp, GE.from_bytes_compressed),
+                            (uncomp, GE.from_bytes_uncompressed),
+                            (xonly, GE.from_bytes_xonly)):
+            for bad in (good + b'\x00', good[:-1]):
+                with self.assertRaises(ValueError):
+                    parse(bad)
+        # the length dispatcher rejects anything that is neither 33 nor 65 bytes
+        for bad in (b'', xonly, comp + b'\x00', uncomp + b'\x00'):
+            with self.assertRaises(ValueError):
+                GE.from_bytes(bad)
+
+    def test_init_off_curve_raises(self):
+        # (1, 1) does not satisfy y**2 = x**3 + 7. Construction must be rejected,
+        # again with an exception that survives `python -O`.
+        with self.assertRaises(ValueError):
+            GE(1, 1)
 
 
 class GeArithmeticTests(unittest.TestCase):

@@ -20,6 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    point at infinity. This is the counterpart to the already existing serialization
    method `GE.to_bytes_compressed_with_infinity`.
 
+#### Changed
+ - The field and scalar byte constructors (`from_bytes_checked`, `from_bytes_wrapping`,
+   `from_bytes_nonzero_checked`) reject any input that is not exactly 32 bytes with a
+   `ValueError`. The group-element parsers (`GE.from_bytes*`) and the curve-membership
+   check in `GE.__init__` raise `ValueError` rather than `assert`, so these checks also
+   hold under `python -O`.
+
 ## [1.0.0] - 2025-03-31
 
 Initial release.
