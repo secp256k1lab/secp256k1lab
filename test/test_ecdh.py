@@ -1,7 +1,7 @@
 import unittest
 from random import randbytes
 
-from secp256k1lab.ecdh import ecdh_libsecp256k1
+from secp256k1lab.ecdh import ecdh_compressed_in_raw_out, ecdh_libsecp256k1
 from secp256k1lab.keys import pubkey_gen_plain
 
 
@@ -28,3 +28,9 @@ class ECDHTests(unittest.TestCase):
             "80a9f99957b29af20338037cf06360bc55422e5bba0032bb4136498c278a7db1"
         )
         self.assertEqual(ecdh_libsecp256k1(seckey_a, pubkey_b), expected)
+
+    def test_zero_seckey(self):
+        pubkey = pubkey_gen_plain(randbytes(32))
+        zero_seckey = b'\x00' * 32
+        self.assertRaises(ValueError, ecdh_compressed_in_raw_out, zero_seckey, pubkey)
+        self.assertRaises(ValueError, ecdh_libsecp256k1, zero_seckey, pubkey)
