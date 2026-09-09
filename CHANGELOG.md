@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    point at infinity. This is the counterpart to the already existing serialization
    method `GE.to_bytes_compressed_with_infinity`.
 
+  - Added a new module `ecdsa` that implements signing and verification of ECDSA signatures
+    (functions `ecdsa_sign` and `ecdsa_verify`) that follow strict DER encoding, as specified
+    in [BIP-66](https://github.com/bitcoin/bips/blob/master/bip-0066.mediawiki).
+
 ## [1.0.0] - 2025-03-31
 
 Initial release.
