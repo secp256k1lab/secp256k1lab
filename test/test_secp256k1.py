@@ -1,8 +1,9 @@
 """Test low-level secp256k1 field and group arithmetic classes."""
-from random import randint
-import unittest
 
-from secp256k1lab.secp256k1 import FE, G, GE, Scalar
+import unittest
+from random import randint
+
+from secp256k1lab.secp256k1 import FE, GE, G, Scalar
 
 
 class PrimeFieldTests(unittest.TestCase):
