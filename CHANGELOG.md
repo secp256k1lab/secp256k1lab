@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    point at infinity. This is the counterpart to the already existing serialization
    method `GE.to_bytes_compressed_with_infinity`.
 
+- Added a new module `bip340_batch_verify` that implements batch verification of Schnorr signatures as
+  [specified in BIP340](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki#user-content-Batch_Verification).
+
 ## [1.0.0] - 2025-03-31
 
 Initial release.
