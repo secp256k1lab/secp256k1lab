@@ -16,7 +16,9 @@ Exports:
 """
 
 from __future__ import annotations
+
 from typing import Self
+
 
 # TODO Docstrings of methods still say "field element"
 class APrimeFE:
@@ -94,7 +96,7 @@ class APrimeFE:
 
     def __truediv__(self, a: int | Self) -> Self:
         """Compute the ratio of two field elements (second may be int)."""
-        if isinstance(a, type(self)) or isinstance(a, int):
+        if isinstance(a, (type(self), int)):
             return type(self)(self, a)
         return NotImplemented
 

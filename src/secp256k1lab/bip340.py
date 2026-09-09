@@ -2,7 +2,7 @@
 # https://github.com/bitcoin/bips/blob/master/bip-0340/reference.py
 
 from .secp256k1 import FE, GE, G
-from .util import int_from_bytes, bytes_from_int, xor_bytes, tagged_hash
+from .util import bytes_from_int, int_from_bytes, tagged_hash, xor_bytes
 
 
 def pubkey_gen(seckey: bytes) -> bytes:
@@ -21,7 +21,7 @@ def schnorr_sign(
     if not (1 <= d0 <= GE.ORDER - 1):
         raise ValueError("The secret key must be an integer in the range 1..n-1.")
     if len(aux_rand) != 32:
-        raise ValueError("aux_rand must be 32 bytes instead of %i." % len(aux_rand))
+        raise ValueError(f"aux_rand must be 32 bytes instead of {len(aux_rand)}.")
     P = d0 * G
     assert not P.infinity
     d = d0 if P.has_even_y() else GE.ORDER - d0
@@ -68,6 +68,4 @@ def schnorr_verify(
         % GE.ORDER
     )
     R = s * G - e * P
-    if R.infinity or (not R.has_even_y()) or (R.x != r):
-        return False
-    return True
+    return not (R.infinity or (not R.has_even_y()) or (R.x != r))
