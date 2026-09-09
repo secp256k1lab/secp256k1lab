@@ -16,7 +16,6 @@ Exports:
 """
 
 from __future__ import annotations
-
 from typing import Self
 
 # TODO Docstrings of methods still say "field element"

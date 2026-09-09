@@ -1,7 +1,7 @@
 # The following functions are based on the BIP 340 reference implementation:
 # https://github.com/bitcoin/bips/blob/master/bip-0340/reference.py
 
-from .secp256k1 import FE, G, GE
+from .secp256k1 import FE, GE, G
 from .util import bytes_from_int, int_from_bytes, tagged_hash, xor_bytes
 
 
