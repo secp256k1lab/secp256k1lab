@@ -179,3 +179,71 @@ class GeSerializationTests(unittest.TestCase):
                 self.assertEqual(ge_ser[0], 0x02 if ge_orig.has_even_y() else 0x03)
             ge_deser = GE.from_bytes_compressed_with_infinity(ge_ser)
             self.assertEqual(ge_deser, ge_orig)
+
+
+class GeArithmeticTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # a few random on-curve points, likely covering both even/odd y polarity
+        cls.points = [randint(1, Scalar.SIZE-1) * G for _ in range(5)]
+
+    def test_batch_mul(self):
+        # fixed, hand-checkable case: 2*G + 3*G == 5*G
+        self.assertEqual(GE.batch_mul((Scalar(2), G), (Scalar(3), G)), Scalar(5) * G)
+
+        # multi-pair batch_mul against the naive sum of individual scalar multiplications
+        pairs = [(Scalar(randint(1, Scalar.SIZE-1)), p) for p in self.points]
+        expected = GE()
+        for a, p in pairs:
+            expected = expected + a * p
+        self.assertEqual(GE.batch_mul(*pairs), expected)
+
+        # a zero scalar contributes nothing, so the sum is unchanged
+        pairs_with_zero = [(Scalar(0), self.points[0])] + pairs
+        self.assertEqual(GE.batch_mul(*pairs_with_zero), expected)
+
+    def test_sum(self):
+        P, Q, R = self.points[:3]
+        # GE.sum folds the arguments into (GE() + P + Q + R)
+        self.assertEqual(GE.sum(P, Q, R), P + Q + R)
+        # the empty sum is the point at infinity, the single-element sum is that element
+        self.assertEqual(GE.sum(), GE())
+        self.assertEqual(GE.sum(P), P)
+
+    def test_from_bytes_dispatch(self):
+        for p in self.points:
+            # 33-byte input is dispatched to the compressed parser and round-trips
+            comp = p.to_bytes_compressed()
+            self.assertEqual(GE.from_bytes(comp), GE.from_bytes_compressed(comp))
+            self.assertEqual(GE.from_bytes(comp), p)
+
+            # 65-byte input is dispatched to the uncompressed parser and round-trips
+            uncomp = p.to_bytes_uncompressed()
+            self.assertEqual(GE.from_bytes(uncomp), GE.from_bytes_uncompressed(uncomp))
+            self.assertEqual(GE.from_bytes(uncomp), p)
+
+    def test_add_neg_sub_group_law(self):
+        P, Q, R = self.points[:3]
+
+        for p in self.points:
+            # the point at infinity is the additive identity
+            self.assertEqual(GE() + p, p)
+            self.assertEqual(p + GE(), p)
+            # a point plus its own negation is the point at infinity
+            neg_p = -p
+            self.assertEqual(p + neg_p, GE())
+            # negation is an involution
+            self.assertEqual(-neg_p, p)
+            # equal inputs take the doubling branch of __add__ (tangent line)
+            self.assertEqual(p + p, Scalar(2) * p)
+            # subtracting a point from itself is the point at infinity
+            self.assertEqual(p - p, GE())
+
+        # distinct inputs take the adding branch, and addition commutes
+        self.assertEqual(P + Q, Q + P)
+        # addition is associative
+        self.assertEqual((P + Q) + R, P + (Q + R))
+        # subtraction is addition of the negation
+        self.assertEqual(P - Q, P + (-Q))
+        # scalar multiples of one point add by adding their scalars: 2*P + 3*P == 5*P
+        self.assertEqual(Scalar(2) * P + Scalar(3) * P, Scalar(5) * P)
