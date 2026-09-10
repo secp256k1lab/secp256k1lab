@@ -32,3 +32,10 @@ dependencies = []
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.ruff.lint]
+ignore = [
+    # False positive for verification-style functions that perform
+    # explicit failure checks before ending with `return True`.
+    "SIM103",
+]

@@ -1,5 +1,5 @@
-from random import randbytes
 import unittest
+from random import randbytes
 
 from secp256k1lab.ecdh import ecdh_libsecp256k1
 from secp256k1lab.keys import pubkey_gen_plain
