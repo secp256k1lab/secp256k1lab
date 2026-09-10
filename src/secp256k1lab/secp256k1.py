@@ -155,12 +155,16 @@ class APrimeFE:
     @classmethod
     def from_bytes_checked(cls, b: bytes) -> Self:
         """Convert a 32-byte array to a field element (BE byte order, no overflow allowed)."""
+        if len(b) != 32:
+            raise ValueError
         v = int.from_bytes(b, 'big')
         return cls.from_int_checked(v)
 
     @classmethod
     def from_bytes_wrapping(cls, b: bytes) -> Self:
         """Convert a 32-byte array to a field element (BE byte order, reduced modulo SIZE)."""
+        if len(b) != 32:
+            raise ValueError
         v = int.from_bytes(b, 'big')
         return cls.from_int_wrapping(v)
 
@@ -208,6 +212,8 @@ class Scalar(APrimeFE):
     @classmethod
     def from_bytes_nonzero_checked(cls, b: bytes) -> Self:
         """Convert a 32-byte array to a scalar (BE byte order, no zero or overflow allowed)."""
+        if len(b) != 32:
+            raise ValueError
         v = int.from_bytes(b, 'big')
         return cls.from_int_nonzero_checked(v)
 
@@ -265,7 +271,8 @@ class GE:
             assert y is not None
             fx = FE(x)
             fy = FE(y)
-            assert fy**2 == fx**3 + 7
+            if fy**2 != fx**3 + 7:
+                raise ValueError
             self._infinity = False
             self._x = fx
             self._y = fy
@@ -381,7 +388,8 @@ class GE:
     @staticmethod
     def from_bytes_compressed(b: bytes) -> GE:
         """Convert a compressed to a group element."""
-        assert len(b) == 33
+        if len(b) != 33:
+            raise ValueError
         if b[0] != 2 and b[0] != 3:
             raise ValueError
         x = FE.from_bytes_checked(b[1:])
@@ -401,7 +409,8 @@ class GE:
     @staticmethod
     def from_bytes_uncompressed(b: bytes) -> GE:
         """Convert an uncompressed to a group element."""
-        assert len(b) == 65
+        if len(b) != 65:
+            raise ValueError
         if b[0] != 4:
             raise ValueError
         x = FE.from_bytes_checked(b[1:33])
@@ -413,7 +422,8 @@ class GE:
     @staticmethod
     def from_bytes(b: bytes) -> GE:
         """Convert a compressed or uncompressed encoding to a group element."""
-        assert len(b) in (33, 65)
+        if len(b) not in (33, 65):
+            raise ValueError
         if len(b) == 33:
             return GE.from_bytes_compressed(b)
         else:
@@ -422,7 +432,8 @@ class GE:
     @staticmethod
     def from_bytes_xonly(b: bytes) -> GE:
         """Convert a point given in xonly encoding to a group element."""
-        assert len(b) == 32
+        if len(b) != 32:
+            raise ValueError
         x = FE.from_bytes_checked(b)
         r = GE.lift_x(x)
         return r
