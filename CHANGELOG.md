@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    point at infinity. This is the counterpart to the already existing serialization
    method `GE.to_bytes_compressed_with_infinity`.
 
+#### Fixed
+ - `ecdh_compressed_in_raw_out` now rejects a zero secret key with a `ValueError` at the input
+   boundary, instead of failing later with an `AssertionError`.
+
 ## [1.0.0] - 2025-03-31
 
 Initial release.
