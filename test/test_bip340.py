@@ -1,7 +1,7 @@
 import csv
+import unittest
 from pathlib import Path
 from random import randbytes
-import unittest
 
 from secp256k1lab.bip340 import pubkey_gen, schnorr_sign, schnorr_verify
 
