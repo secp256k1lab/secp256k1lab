@@ -7,6 +7,7 @@ An INSECURE implementation of the secp256k1 elliptic curve and related cryptogra
 
 Features:
 * Low-level secp256k1 field and group arithmetic.
+* ECDSA signing/verification following strict DER encoding according to [BIP-66](https://github.com/bitcoin/bips/blob/master/bip-0066.mediawiki).
 * Schnorr signing/verification and key generation according to [BIP-340](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki).
 * ECDH key exchange.
 
